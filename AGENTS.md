@@ -21,6 +21,7 @@ Guidance for agents using beat.horse.
 - Use `source_audio` assets for `source_audio_asset_id` and `reference_audio` assets for `reference_audio_asset_id`.
 - Do not add alias endpoints; use canonical `/v1/generations` and `/v1/assets` routes.
 - Verify deliverable outputs with `get_generation_job`, `get_asset_download_url`, and `ffprobe` when local shell access exists.
+- REST fallback includes read helpers plus `cancel`, `download`, and `delete-asset`; prefer MCP tools when available.
 
 ## Scopes
 

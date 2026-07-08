@@ -17,6 +17,13 @@ curl -L "$DOWNLOAD_URL" -o output.mp3
 ffprobe -v error -show_entries format=duration,bit_rate -show_streams -of json output.mp3
 ```
 
+REST fallback shortcut:
+
+```bash
+python3 scripts/beat_horse.py download <asset_id> -o output.mp3
+ffprobe -v error -show_entries format=duration,bit_rate -show_streams -of json output.mp3
+```
+
 Report the job as deliverable only after an output asset exists. If local verification is not possible, say that the asset URL exists but was not locally verified.
 
 ## Missing output assets

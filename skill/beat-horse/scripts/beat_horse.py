@@ -25,7 +25,14 @@ from urllib.request import Request, urlopen
 
 API = os.environ.get("BEAT_HORSE_API_URL", "https://api.beat.horse").rstrip("/")
 KEY = os.environ.get("BEAT_HORSE_API_KEY")
-TERMINAL_STATUSES = {"succeeded", "partial_success", "failed", "cancelled", "expired"}
+TERMINAL_STATUSES = {
+    "succeeded",
+    "partial_success",
+    "failed",
+    "cancelled",
+    "canceled",
+    "expired",
+}
 
 
 def auth_header() -> str:
@@ -185,15 +192,28 @@ def add_generation_args(parser: argparse.ArgumentParser) -> None:
 
 def wait_for_job(job_id: str, *, timeout: int, poll: float) -> dict[str, Any]:
     deadline = time.time() + timeout
+    last_payload: dict[str, Any] | None = None
+    last_status = "unknown"
     while True:
         status_payload = request_json("GET", f"/v1/generations/{job_id}/status")
+        last_payload = status_payload
         status_data = unwrap_data(status_payload)
         job = status_data.get("job", {}) if isinstance(status_data, dict) else {}
         status = str(job.get("status") or "unknown")
+        last_status = status
         if status in TERMINAL_STATUSES:
             return request_json("GET", f"/v1/generations/{job_id}")
         if time.time() >= deadline:
-            return status_payload
+            return {
+                "timed_out": True,
+                "job_id": job_id,
+                "last_status": last_status,
+                "next_step": (
+                    "Poll this same job_id with status/get/wait; do not create a "
+                    "duplicate paid job unless the API confirms create failed."
+                ),
+                "last_response": last_payload,
+            }
         time.sleep(poll)
 
 
@@ -244,6 +264,33 @@ def upload_file(path: Path, *, kind: str, mime_type: str | None) -> dict[str, An
     return request_json("POST", f"/v1/assets/{asset_id}/complete", body={"uploaded": True})
 
 
+def download_asset(asset_id: str, output: Path | None) -> dict[str, Any]:
+    download_payload = request_json("GET", f"/v1/assets/{asset_id}/download-url")
+    download_data = unwrap_data(download_payload)
+    if not isinstance(download_data, dict):
+        raise SystemExit("Download URL response was not an object.")
+    url = str(download_data.get("url") or "")
+    if not url:
+        raise SystemExit("Download URL response did not include data.url.")
+    output_path = output or Path(asset_id)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with urlopen(url, timeout=300) as resp:
+            content = resp.read()
+    except HTTPError as exc:
+        detail = exc.read().decode(errors="replace")[:600]
+        raise SystemExit(f"Asset download failed with HTTP {exc.code}: {detail}") from exc
+    except URLError as exc:
+        raise SystemExit(f"Asset download failed: {exc}") from exc
+    output_path.write_bytes(content)
+    return {
+        "asset_id": asset_id,
+        "output_path": str(output_path),
+        "bytes": len(content),
+        "expires_at": download_data.get("expires_at"),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="beat.horse REST fallback client")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -251,6 +298,30 @@ def main() -> None:
     sub.add_parser("capabilities")
     sub.add_parser("account")
     sub.add_parser("credits")
+
+    usage = sub.add_parser("usage")
+    usage.add_argument("--created-from")
+    usage.add_argument("--created-to")
+
+    api_key_usage = sub.add_parser("api-key-usage")
+    api_key_usage.add_argument("--window", choices=["7d", "30d", "90d"], default="30d")
+
+    ledger = sub.add_parser("ledger")
+    ledger.add_argument("--limit", type=int, default=25)
+    ledger.add_argument("--cursor")
+    ledger.add_argument("--type")
+    ledger.add_argument("--created-from")
+    ledger.add_argument("--created-to")
+
+    packages = sub.add_parser("credit-packages")
+    packages.add_argument("--currency", default="EUR")
+
+    purchases = sub.add_parser("billing-purchases")
+    purchases.add_argument("--limit", type=int, default=25)
+    purchases.add_argument("--cursor")
+    purchases.add_argument("--status")
+    purchases.add_argument("--created-from")
+    purchases.add_argument("--created-to")
 
     models = sub.add_parser("models")
     models.add_argument("--task-type")
@@ -309,6 +380,17 @@ def main() -> None:
     download = sub.add_parser("download-url")
     download.add_argument("asset_id")
 
+    download_file = sub.add_parser("download")
+    download_file.add_argument("asset_id")
+    download_file.add_argument("-o", "--output", type=Path)
+
+    cancel = sub.add_parser("cancel")
+    cancel.add_argument("job_id")
+    cancel.add_argument("--reason", default="rest_fallback_cancelled")
+
+    delete_asset = sub.add_parser("delete-asset")
+    delete_asset.add_argument("asset_id")
+
     upload = sub.add_parser("upload")
     upload.add_argument("path")
     upload.add_argument("--kind", default="source_audio")
@@ -322,6 +404,46 @@ def main() -> None:
         print_json(request_json("GET", "/v1/account"))
     elif args.cmd == "credits":
         print_json(request_json("GET", "/v1/credits/balance"))
+    elif args.cmd == "usage":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/usage/summary",
+                params={"created_from": args.created_from, "created_to": args.created_to},
+            )
+        )
+    elif args.cmd == "api-key-usage":
+        print_json(request_json("GET", "/v1/usage/api-keys", params={"window": args.window}))
+    elif args.cmd == "ledger":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/credits/ledger",
+                params={
+                    "limit": args.limit,
+                    "cursor": args.cursor,
+                    "type": args.type,
+                    "created_from": args.created_from,
+                    "created_to": args.created_to,
+                },
+            )
+        )
+    elif args.cmd == "credit-packages":
+        print_json(request_json("GET", "/v1/credits/packages", params={"currency": args.currency}))
+    elif args.cmd == "billing-purchases":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/billing/purchases",
+                params={
+                    "limit": args.limit,
+                    "cursor": args.cursor,
+                    "status": args.status,
+                    "created_from": args.created_from,
+                    "created_to": args.created_to,
+                },
+            )
+        )
     elif args.cmd == "models":
         print_json(
             request_json(
@@ -399,6 +521,18 @@ def main() -> None:
         )
     elif args.cmd == "download-url":
         print_json(request_json("GET", f"/v1/assets/{args.asset_id}/download-url"))
+    elif args.cmd == "download":
+        print_json(download_asset(args.asset_id, args.output))
+    elif args.cmd == "cancel":
+        print_json(
+            request_json(
+                "POST",
+                f"/v1/generations/{args.job_id}/cancel",
+                body={"reason": args.reason},
+            )
+        )
+    elif args.cmd == "delete-asset":
+        print_json(request_json("DELETE", f"/v1/assets/{args.asset_id}"))
     elif args.cmd == "upload":
         print_json(upload_file(Path(args.path), kind=args.kind, mime_type=args.mime_type))
     else:

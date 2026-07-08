@@ -19,6 +19,8 @@ Good prompts describe the desired result, not UI instructions.
 - Use lyrics for `text2music`, `cover`, and `complete` when vocals matter.
 - Structure tags such as `[Verse]`, `[Chorus]`, `[Bridge]`, `[Intro]`, `[Outro]`, and `[Instrumental]` are useful.
 - Set `vocal_language` when the language matters; leave it unset or auto only when language can be inferred.
+- Use natural spelling and native diacritics for the target language. Do not ASCII-transliterate unless the user explicitly asks for ASCII-only text.
+- Keep bracketed section labels in English unless the user asks for another convention.
 - For cover jobs, providing lyrics often improves vocal alignment compared with source audio plus a vague prompt.
 
 ## Task notes

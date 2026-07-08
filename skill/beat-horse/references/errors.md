@@ -40,6 +40,8 @@ Continue with:
 
 Retry create only when no job was created or the API confirms the create failed before reservation.
 
+The REST fallback `wait` and `create --wait` commands return a JSON object with `timed_out: true`, `job_id`, `last_status`, and `next_step` when local waiting expires. Treat that as an instruction to continue polling the same job.
+
 ## Output delivery failures
 
 If a terminal job has no output asset IDs:

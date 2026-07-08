@@ -52,12 +52,15 @@ When MCP is unavailable:
 python3 skill/beat-horse/scripts/beat_horse.py capabilities
 python3 skill/beat-horse/scripts/beat_horse.py models --task-type text2music --enabled
 python3 skill/beat-horse/scripts/beat_horse.py worker-health --require-worker dit:xl-turbo:text2music
+python3 skill/beat-horse/scripts/beat_horse.py usage
+python3 skill/beat-horse/scripts/beat_horse.py ledger
 python3 skill/beat-horse/scripts/beat_horse.py create \
   --task-type text2music \
   --model-id xl-turbo \
   --prompt "clean club rap beat" \
   --audio-duration 30 \
   --wait
+python3 skill/beat-horse/scripts/beat_horse.py download <asset_id> -o output.mp3
 ```
 
 The REST script accepts either a raw API key or a `Bearer ...` value in `BEAT_HORSE_API_KEY`. Use `--payload-json` for exact advanced payloads.

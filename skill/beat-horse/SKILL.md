@@ -101,7 +101,10 @@ Use `scripts/beat_horse.py` when MCP tools are not available:
 python3 scripts/beat_horse.py capabilities
 python3 scripts/beat_horse.py models --task-type text2music --enabled
 python3 scripts/beat_horse.py worker-health --require-worker dit:xl-turbo:text2music
+python3 scripts/beat_horse.py usage
+python3 scripts/beat_horse.py ledger
 python3 scripts/beat_horse.py create --task-type text2music --model-id xl-turbo --prompt "clean club rap beat" --audio-duration 30 --wait
+python3 scripts/beat_horse.py download <asset_id> -o output.mp3
 ```
 
 The REST script exposes common generation fields. Use `--payload-json` for exact advanced payloads or fields added after this skill version.
