@@ -1,0 +1,13 @@
+interface:
+  display_name: "beat.horse"
+  short_description: "Generate AI music over beat.horse API and MCP."
+  default_prompt: "Use $beat-horse to create, edit, or inspect an AI music generation."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "beat-horse"
+      description: "beat.horse remote MCP server"
+      transport: "streamable_http"
+      url: "https://mcp.beat.horse/mcp"
+policy:
+  allow_implicit_invocation: true
