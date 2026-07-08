@@ -28,6 +28,15 @@ KEY = os.environ.get("BEAT_HORSE_API_KEY")
 TERMINAL_STATUSES = {"succeeded", "partial_success", "failed", "cancelled", "expired"}
 
 
+def auth_header() -> str:
+    key = (KEY or "").strip()
+    if not key:
+        raise SystemExit("Set BEAT_HORSE_API_KEY.")
+    if not key.lower().startswith("bearer "):
+        key = "Bearer " + key
+    return key
+
+
 def request_json(
     method: str,
     path: str,
@@ -36,8 +45,6 @@ def request_json(
     params: dict[str, Any] | None = None,
     headers: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    if not KEY:
-        raise SystemExit("Set BEAT_HORSE_API_KEY.")
     url = API + path
     if params:
         clean_params = {
@@ -49,7 +56,7 @@ def request_json(
             url += "?" + urlencode(clean_params, doseq=True)
     data = json.dumps(body).encode("utf-8") if body is not None else None
     req_headers = {
-        "Authorization": f"Bearer {KEY}",
+        "Authorization": auth_header(),
         "Accept": "application/json",
         "Content-Type": "application/json",
     }
@@ -89,6 +96,10 @@ def generation_payload(args: argparse.Namespace) -> dict[str, Any]:
         "prompt": args.prompt,
         "lyrics": args.lyrics,
         "audio_duration": args.audio_duration,
+        "bpm": args.bpm,
+        "key_scale": args.key_scale,
+        "time_signature": args.time_signature,
+        "vocal_language": args.vocal_language,
         "completion_duration": args.completion_duration,
         "source_audio_asset_id": args.source_audio_asset_id,
         "reference_audio_asset_id": args.reference_audio_asset_id,
@@ -102,9 +113,25 @@ def generation_payload(args: argparse.Namespace) -> dict[str, Any]:
         "cover_noise_strength": args.cover_noise_strength,
         "thinking": args.thinking,
         "optimize_prompt": args.optimize_prompt,
+        "optimize_mode": args.optimize_mode,
+        "lm_temperature": args.lm_temperature,
+        "lm_top_k": args.lm_top_k,
+        "lm_top_p": args.lm_top_p,
+        "lm_cfg_scale": args.lm_cfg_scale,
+        "lm_negative_prompt": args.lm_negative_prompt,
+        "use_cot_metas": args.use_cot_metas,
+        "use_cot_caption": args.use_cot_caption,
+        "use_cot_language": args.use_cot_language,
+        "global_caption": args.global_caption,
         "inference_steps": args.inference_steps,
+        "guidance_scale": args.guidance_scale,
+        "shift": args.shift,
+        "infer_method": args.infer_method,
+        "cfg_interval_start": args.cfg_interval_start,
+        "cfg_interval_end": args.cfg_interval_end,
         "seed": args.seed,
         "use_random_seed": args.use_random_seed,
+        "batch_size": args.batch_size,
         "output_format": args.output_format,
     }
     return {key: value for key, value in payload.items() if value is not None}
@@ -117,6 +144,10 @@ def add_generation_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--prompt")
     parser.add_argument("--lyrics")
     parser.add_argument("--audio-duration", type=int)
+    parser.add_argument("--bpm", type=int)
+    parser.add_argument("--key-scale")
+    parser.add_argument("--time-signature")
+    parser.add_argument("--vocal-language")
     parser.add_argument("--completion-duration", type=int)
     parser.add_argument("--source-audio-asset-id")
     parser.add_argument("--reference-audio-asset-id")
@@ -130,9 +161,25 @@ def add_generation_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--cover-noise-strength", type=float)
     parser.add_argument("--thinking", action="store_true")
     parser.add_argument("--optimize-prompt", action="store_true")
+    parser.add_argument("--optimize-mode")
+    parser.add_argument("--lm-temperature", type=float)
+    parser.add_argument("--lm-top-k", type=int)
+    parser.add_argument("--lm-top-p", type=float)
+    parser.add_argument("--lm-cfg-scale", type=float)
+    parser.add_argument("--lm-negative-prompt")
+    parser.add_argument("--use-cot-metas", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--use-cot-caption", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--use-cot-language", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--global-caption")
     parser.add_argument("--inference-steps", type=int)
+    parser.add_argument("--guidance-scale", type=float)
+    parser.add_argument("--shift", type=float)
+    parser.add_argument("--infer-method", choices=["ode", "sde"])
+    parser.add_argument("--cfg-interval-start", type=float)
+    parser.add_argument("--cfg-interval-end", type=float)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--use-random-seed", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--batch-size", type=int)
     parser.add_argument("--output-format", choices=["mp3", "wav", "flac"], default="mp3")
 
 
@@ -205,12 +252,35 @@ def main() -> None:
     sub.add_parser("account")
     sub.add_parser("credits")
 
+    models = sub.add_parser("models")
+    models.add_argument("--task-type")
+    models.add_argument("--enabled", action=argparse.BooleanOptionalAction, default=None)
+
+    worker_health = sub.add_parser("worker-health")
+    worker_health.add_argument("--require-worker", action="append", default=None)
+    worker_health.add_argument("--include-workers", action="store_true")
+    worker_health.add_argument("--limit", type=int, default=500)
+
+    assets = sub.add_parser("assets")
+    assets.add_argument("--limit", type=int, default=50)
+    assets.add_argument("--cursor")
+    assets.add_argument("--kind")
+    assets.add_argument("--status", default="ready")
+
     estimate = sub.add_parser("estimate")
     add_generation_args(estimate)
 
     create = sub.add_parser("create")
     add_generation_args(create)
     create.add_argument("--idempotency-key", default=None)
+    create.add_argument(
+        "--client-request-id",
+        default=None,
+        help=(
+            "Stable caller ID used as REST Idempotency-Key when --idempotency-key "
+            "is not set. MCP has a native client_request_id parameter."
+        ),
+    )
     create.add_argument("--wait", action="store_true")
     create.add_argument("--timeout", type=int, default=1800)
     create.add_argument("--poll", type=float, default=5.0)
@@ -225,6 +295,16 @@ def main() -> None:
     wait.add_argument("job_id")
     wait.add_argument("--timeout", type=int, default=1800)
     wait.add_argument("--poll", type=float, default=5.0)
+
+    jobs = sub.add_parser("jobs")
+    jobs.add_argument("--limit", type=int, default=25)
+    jobs.add_argument("--cursor")
+    jobs.add_argument("--status")
+    jobs.add_argument("--model-id")
+    jobs.add_argument("--task-type")
+    jobs.add_argument("--source")
+    jobs.add_argument("--created-from")
+    jobs.add_argument("--created-to")
 
     download = sub.add_parser("download-url")
     download.add_argument("asset_id")
@@ -242,10 +322,43 @@ def main() -> None:
         print_json(request_json("GET", "/v1/account"))
     elif args.cmd == "credits":
         print_json(request_json("GET", "/v1/credits/balance"))
+    elif args.cmd == "models":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/models",
+                params={"task_type": args.task_type, "enabled": args.enabled},
+            )
+        )
+    elif args.cmd == "worker-health":
+        print_json(
+            request_json(
+                "GET",
+                "/health/workers",
+                params={
+                    "require_worker": args.require_worker,
+                    "include_workers": args.include_workers,
+                    "limit": args.limit,
+                },
+            )
+        )
+    elif args.cmd == "assets":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/assets",
+                params={
+                    "limit": args.limit,
+                    "cursor": args.cursor,
+                    "kind": args.kind,
+                    "status": args.status,
+                },
+            )
+        )
     elif args.cmd == "estimate":
         print_json(request_json("POST", "/v1/generations/estimate", body=generation_payload(args)))
     elif args.cmd == "create":
-        idem = args.idempotency_key or str(uuid.uuid4())
+        idem = args.idempotency_key or args.client_request_id or str(uuid.uuid4())
         created = request_json(
             "POST",
             "/v1/generations",
@@ -267,6 +380,23 @@ def main() -> None:
         print_json(request_json("GET", f"/v1/generations/{args.job_id}/status"))
     elif args.cmd == "wait":
         print_json(wait_for_job(args.job_id, timeout=args.timeout, poll=args.poll))
+    elif args.cmd == "jobs":
+        print_json(
+            request_json(
+                "GET",
+                "/v1/generations",
+                params={
+                    "limit": args.limit,
+                    "cursor": args.cursor,
+                    "status": args.status,
+                    "model_id": args.model_id,
+                    "task_type": args.task_type,
+                    "source": args.source,
+                    "created_from": args.created_from,
+                    "created_to": args.created_to,
+                },
+            )
+        )
     elif args.cmd == "download-url":
         print_json(request_json("GET", f"/v1/assets/{args.asset_id}/download-url"))
     elif args.cmd == "upload":

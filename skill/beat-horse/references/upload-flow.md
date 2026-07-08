@@ -17,6 +17,13 @@ Common `kind` values:
 
 The returned `asset.id` becomes `source_audio_asset_id` or `reference_audio_asset_id`.
 
+Asset kind matters:
+
+- Use `source_audio` for `source_audio_asset_id`.
+- Use `reference_audio` for `reference_audio_asset_id`.
+- If the same local file must be both source and reference, upload it twice, once with each kind.
+- Do not pass web URLs, local paths, or YouTube URLs as asset IDs.
+
 ## Signed upload
 
 For larger files or REST fallback:

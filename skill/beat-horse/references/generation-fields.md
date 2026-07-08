@@ -11,6 +11,8 @@ MCP `estimate_generation` exposes exactly the API `GenerationRequest` fields. `c
 - `audio_duration`: target duration in seconds for tasks that accept explicit duration.
 - `completion_duration`: extension duration for `complete` when not using target `audio_duration`.
 - `output_format`: `mp3`, `wav`, or `flac`.
+- `client_request_id`: MCP-only create parameter for stable caller identity. It is not part of REST `GenerationRequest`.
+- `idempotency_key`: MCP-only create parameter. REST uses the `Idempotency-Key` header.
 
 ## Audio assets
 
@@ -68,3 +70,9 @@ Only send these when `get_capabilities` says the selected task/model supports th
 - `batch_size`
 
 Use `xl-turbo` with 8 steps by default. Use `xl-base` and `xl-sft` with 50 steps by default.
+
+## REST fallback script
+
+`scripts/beat_horse.py` exposes the current common generation fields as CLI flags. Use `--payload-json` when an exact raw request is needed.
+
+For REST creates, pass `--idempotency-key`. If only `--client-request-id` is provided, the script uses it as the REST `Idempotency-Key` header because the public REST body forbids extra fields.

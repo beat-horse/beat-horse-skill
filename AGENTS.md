@@ -13,11 +13,14 @@ Guidance for agents using beat.horse.
 ## Rules
 
 - Use MCP tools first when connected.
-- Call `get_capabilities` before choosing task/model/thinking/optimize settings.
-- Work is async: create a job, poll status or wait, then fetch output download URLs.
-- Send a fresh `idempotency_key` on generation create.
+- Before paid generation, call `get_account`, `get_credit_balance`, `list_models`, `get_capabilities`, and `estimate_generation`.
+- Work is async: create a job, poll status or wait, inspect full job detail, then fetch output download URLs.
+- Send an `idempotency_key` on generation create.
+- If create returned a `job_id`, do not create a duplicate paid job after a timeout; keep polling the original job.
 - Upload source/reference audio before sending `source_audio_asset_id` or `reference_audio_asset_id`.
+- Use `source_audio` assets for `source_audio_asset_id` and `reference_audio` assets for `reference_audio_asset_id`.
 - Do not add alias endpoints; use canonical `/v1/generations` and `/v1/assets` routes.
+- Verify deliverable outputs with `get_generation_job`, `get_asset_download_url`, and `ffprobe` when local shell access exists.
 
 ## Scopes
 

@@ -41,6 +41,15 @@ Default inference steps:
 - `lego` and `complete` are benchmark-gated for Thinking; only use when `get_capabilities` exposes them as public.
 - `cover` and `repaint` do not use native ACE Thinking. Use `optimize_prompt=true` only when capabilities expose experimental prompt optimize.
 - `extract` rejects Thinking and prompt optimize.
+- Always run `estimate_generation` before creating a job with Thinking, optimize, or LM tuning parameters.
+
+## Field restrictions
+
+- Do not send `audio_duration` to `cover`, `repaint`, `extract`, or `lego`.
+- Do not send `track_name` outside `extract` and `lego`.
+- Do not send `track_classes` outside `complete`.
+- Do not send `completion_duration` outside `complete`.
+- Do not send cover controls outside `cover`, repaint controls outside `repaint`, or interval fields outside `repaint`/`lego`.
 
 ## Track names
 

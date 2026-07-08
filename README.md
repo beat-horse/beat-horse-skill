@@ -37,12 +37,21 @@ skill/beat-horse
 - Generate text-to-music, cover, repaint, extract, lego/add-layer, and complete/extend jobs.
 - Poll job status and fetch output download URLs.
 
+## Safety defaults
+
+- Use MCP first and call `get_capabilities` before choosing task/model/Thinking settings.
+- Estimate before paid generation unless the user explicitly skips it.
+- If create returns a `job_id`, keep polling that job after a timeout instead of creating a duplicate paid job.
+- Download and verify generated output with `ffprobe` when local shell access is available.
+
 ## REST fallback
 
 When MCP is unavailable:
 
 ```bash
 python3 skill/beat-horse/scripts/beat_horse.py capabilities
+python3 skill/beat-horse/scripts/beat_horse.py models --task-type text2music --enabled
+python3 skill/beat-horse/scripts/beat_horse.py worker-health --require-worker dit:xl-turbo:text2music
 python3 skill/beat-horse/scripts/beat_horse.py create \
   --task-type text2music \
   --model-id xl-turbo \
@@ -50,6 +59,8 @@ python3 skill/beat-horse/scripts/beat_horse.py create \
   --audio-duration 30 \
   --wait
 ```
+
+The REST script accepts either a raw API key or a `Bearer ...` value in `BEAT_HORSE_API_KEY`. Use `--payload-json` for exact advanced payloads.
 
 ## Source of truth
 
