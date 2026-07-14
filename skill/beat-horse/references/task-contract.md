@@ -4,25 +4,25 @@ Load this when choosing task inputs, model quality, Thinking, or prompt optimize
 
 Always call MCP `get_capabilities` first. This file describes the public contract; the live capability response decides which models are currently routable.
 
-## Quality mapping
+## Model mapping
 
 For `text2music`, `cover`, and `repaint`:
 
-| Quality | Preferred model |
+| Mode | Public model ID |
 |---|---|
-| fast | `xl-turbo` |
-| normal | `xl-base` |
-| best | `xl-sft` |
+| Fast / Pulse | `pulse` |
+| Normal / Studio | `studio` |
+| Best / Master | `master` |
 
-For `extract`, `lego`, and `complete`, use `xl-base` when live.
+For `extract`, `lego`, and `complete`, use `studio` when live.
 
 Default inference steps:
 
 | Model | Default steps |
 |---|---:|
-| `xl-turbo` | 8 |
-| `xl-base` | 50 |
-| `xl-sft` | 50 |
+| `pulse` | 8 |
+| `studio` | 50 |
+| `master` | 50 |
 
 ## Tasks
 
@@ -39,7 +39,7 @@ Default inference steps:
 
 - `thinking=true` is native LM planning. Public v1 supports it for `text2music` when a compatible LM satellite is routable.
 - `lego` and `complete` are benchmark-gated for Thinking; only use when `get_capabilities` exposes them as public.
-- `cover` and `repaint` do not use native ACE Thinking. Use `optimize_prompt=true` only when capabilities expose experimental prompt optimize.
+- `cover` and `repaint` do not use native Thinking. Use `optimize_prompt=true` only when capabilities expose experimental prompt optimize.
 - `extract` rejects Thinking and prompt optimize.
 - Always run `estimate_generation` before creating a job with Thinking, optimize, or LM tuning parameters.
 

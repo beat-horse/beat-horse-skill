@@ -57,7 +57,7 @@ Only send these when `get_capabilities` says the selected task/model supports th
 - `track_name`: required for `extract` and `lego`.
 - `track_classes`: required for `complete`.
 
-## DiT/inference
+## Render settings
 
 - `inference_steps`: default is model-specific; leave unset unless the user asks.
 - `guidance_scale`
@@ -69,7 +69,7 @@ Only send these when `get_capabilities` says the selected task/model supports th
 - `use_random_seed`
 - `batch_size`
 
-Use `xl-turbo` with 8 steps by default. Use `xl-base` and `xl-sft` with 50 steps by default.
+Use `pulse` with 8 steps by default. Use `studio` and `master` with 50 steps by default.
 
 ## REST fallback script
 

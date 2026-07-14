@@ -27,15 +27,15 @@ Load this before building or replaying generation payloads.
 - Always estimate first when using `thinking`, `optimize_prompt`, or LM parameters.
 - If estimate rejects the mode, do not create the paid job.
 - `thinking=true` means native LM planning only where capabilities allow it.
-- `cover` and `repaint` do not use native ACE Thinking. Use `optimize_prompt=true` only when capabilities expose the experimental prompt pre-pass.
+- `cover` and `repaint` do not use native Thinking. Use `optimize_prompt=true` only when capabilities expose the experimental prompt pre-pass.
 - `extract` rejects Thinking and prompt optimize.
 
-## XL-Turbo inference fields
+## Pulse render fields
 
-- Do not blindly replay old CFG/guidance fields into `xl-turbo` jobs.
-- `xl-turbo` should normally use 8 inference steps.
+- Do not blindly replay old CFG/guidance fields into `pulse` jobs.
+- `pulse` should normally use 8 inference steps.
 - Leave `guidance_scale`, `cfg_interval_start`, and `cfg_interval_end` unset unless current capabilities or API docs explicitly allow them for the selected model.
-- `xl-base` and `xl-sft` normally use 50 inference steps.
+- `studio` and `master` normally use 50 inference steps.
 
 ## Retry safety
 

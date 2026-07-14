@@ -4,7 +4,7 @@
 Examples:
   export BEAT_HORSE_API_KEY=bh_live_...
   python3 beat_horse.py capabilities
-  python3 beat_horse.py create --task-type text2music --model-id xl-turbo \
+  python3 beat_horse.py create --task-type text2music --model-id pulse \
     --prompt "clean club rap beat" --audio-duration 30 --wait
 """
 
@@ -55,9 +55,7 @@ def request_json(
     url = API + path
     if params:
         clean_params = {
-            key: value
-            for key, value in params.items()
-            if value is not None and value != ""
+            key: value for key, value in params.items() if value is not None and value != ""
         }
         if clean_params:
             url += "?" + urlencode(clean_params, doseq=True)
@@ -147,7 +145,7 @@ def generation_payload(args: argparse.Namespace) -> dict[str, Any]:
 def add_generation_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--payload-json", help="Raw GenerationRequest JSON object.")
     parser.add_argument("--task-type", default="text2music")
-    parser.add_argument("--model-id", default="xl-turbo")
+    parser.add_argument("--model-id", default="pulse")
     parser.add_argument("--prompt")
     parser.add_argument("--lyrics")
     parser.add_argument("--audio-duration", type=int)
@@ -241,10 +239,7 @@ def upload_file(path: Path, *, kind: str, mime_type: str | None) -> dict[str, An
     if not upload_url:
         raise SystemExit("Upload response did not include upload.url.")
     upload_method = str(upload.get("method") or "PUT")
-    upload_headers = {
-        str(key): str(value)
-        for key, value in (upload.get("headers") or {}).items()
-    }
+    upload_headers = {str(key): str(value) for key, value in (upload.get("headers") or {}).items()}
     try:
         upload_req = Request(
             upload_url,

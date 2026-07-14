@@ -32,7 +32,7 @@ Authorization: Bearer $BEAT_HORSE_API_KEY
 - Do not create duplicate paid jobs after a timeout. If `create_generation_job` returned a `job_id`, keep polling that job instead of creating another one.
 - Upload source/reference audio first and use the returned `asset.id` as `source_audio_asset_id` or `reference_audio_asset_id`.
 - Do not invent endpoint aliases. Generation creation is `POST /v1/generations`; job detail is `/v1/generations/{job_id}`.
-- Treat `thinking` as native LM planning only where capabilities allow it. Treat `optimize_prompt` for cover/repaint as an experimental prompt pre-pass, not native ACE Thinking.
+- Treat `thinking` as native planning only where capabilities allow it. Treat `optimize_prompt` for cover/repaint as an experimental prompt pre-pass, not native Thinking.
 
 ## MCP Tool Map
 
@@ -60,7 +60,7 @@ Before creating a paid generation:
 Text-to-music:
 
 1. Run the paid work preflight.
-2. Select a live model: fast usually `xl-turbo`, normal `xl-base`, best `xl-sft`.
+2. Select a live model: `pulse` for fast, `studio` for normal, or `master` for best quality.
 3. `create_generation_job(..., idempotency_key=uuid)`.
 4. `wait_for_generation_job(job_id)`.
 5. `get_generation_job(job_id)` and inspect `outputs`.
@@ -100,10 +100,10 @@ Use `scripts/beat_horse.py` when MCP tools are not available:
 ```bash
 python3 scripts/beat_horse.py capabilities
 python3 scripts/beat_horse.py models --task-type text2music --enabled
-python3 scripts/beat_horse.py worker-health --require-worker dit:xl-turbo:text2music
+python3 scripts/beat_horse.py worker-health --require-worker dit:pulse:text2music
 python3 scripts/beat_horse.py usage
 python3 scripts/beat_horse.py ledger
-python3 scripts/beat_horse.py create --task-type text2music --model-id xl-turbo --prompt "clean club rap beat" --audio-duration 30 --wait
+python3 scripts/beat_horse.py create --task-type text2music --model-id pulse --prompt "clean club rap beat" --audio-duration 30 --wait
 python3 scripts/beat_horse.py download <asset_id> -o output.mp3
 ```
 
