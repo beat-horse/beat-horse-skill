@@ -38,4 +38,4 @@ If a job status is `succeeded` but no output asset IDs are present:
 
 - Respect `output_format` from the request and asset metadata.
 - Do not assume outputs are `.wav`; generated outputs may be `mp3`, `wav`, or `flac`.
-- When making a review copy from a master WAV, prefer MP3 320 kbps for sharing and keep the original asset ID in notes.
+- When making a review copy from the original WAV, prefer MP3 320 kbps for sharing and keep the original asset ID in notes.

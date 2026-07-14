@@ -60,7 +60,7 @@ Before creating a paid generation:
 Text-to-music:
 
 1. Run the paid work preflight.
-2. Select a live model: `pulse` for fast, `studio` for normal, or `master` for best quality.
+2. Select a live model: `pulse` is fast and low cost, `studio` is slower at medium cost, and `muse` is slowest at higher cost.
 3. `create_generation_job(..., idempotency_key=uuid)`.
 4. `wait_for_generation_job(job_id)`.
 5. `get_generation_job(job_id)` and inspect `outputs`.

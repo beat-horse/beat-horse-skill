@@ -35,7 +35,7 @@ Load this before building or replaying generation payloads.
 - Do not blindly replay old CFG/guidance fields into `pulse` jobs.
 - `pulse` should normally use 8 inference steps.
 - Leave `guidance_scale`, `cfg_interval_start`, and `cfg_interval_end` unset unless current capabilities or API docs explicitly allow them for the selected model.
-- `studio` and `master` normally use 50 inference steps.
+- `studio` and `muse` normally use 50 inference steps.
 
 ## Retry safety
 

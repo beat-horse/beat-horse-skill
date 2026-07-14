@@ -69,7 +69,7 @@ Only send these when `get_capabilities` says the selected task/model supports th
 - `use_random_seed`
 - `batch_size`
 
-Use `pulse` with 8 steps by default. Use `studio` and `master` with 50 steps by default.
+Use `pulse` with 8 steps by default. Use `studio` and `muse` with 50 steps by default.
 
 ## REST fallback script
 

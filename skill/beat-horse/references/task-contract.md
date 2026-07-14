@@ -1,6 +1,6 @@
 # beat.horse task contract
 
-Load this when choosing task inputs, model quality, Thinking, or prompt optimize settings.
+Load this when choosing task inputs, model profile, Thinking, or prompt optimize settings.
 
 Always call MCP `get_capabilities` first. This file describes the public contract; the live capability response decides which models are currently routable.
 
@@ -8,11 +8,11 @@ Always call MCP `get_capabilities` first. This file describes the public contrac
 
 For `text2music`, `cover`, and `repaint`:
 
-| Mode | Public model ID |
-|---|---|
-| Fast / Pulse | `pulse` |
-| Normal / Studio | `studio` |
-| Best / Master | `master` |
+| Model | Public model ID | Speed and cost |
+|---|---|---|
+| Pulse | `pulse` | Fast, low cost |
+| Studio | `studio` | Slower, medium cost |
+| Muse | `muse` | Slowest, higher cost |
 
 For `extract`, `lego`, and `complete`, use `studio` when live.
 
@@ -22,7 +22,7 @@ Default inference steps:
 |---|---:|
 | `pulse` | 8 |
 | `studio` | 50 |
-| `master` | 50 |
+| `muse` | 50 |
 
 ## Tasks
 
